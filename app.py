@@ -10,6 +10,47 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 import random
 
+# --- Streamlit App ---
+# Estilo personalizado estilo F1
+def inject_f1_style():
+    st.markdown('''
+        <style>
+            body {
+                background-image: url('https://images.unsplash.com/photo-1625658201247-3b65d7fae6bb?ixlib=rb-4.0.3&auto=format&fit=crop&w=1350&q=80');
+                background-size: cover;
+                background-attachment: fixed;
+                background-repeat: no-repeat;
+                background-position: center;
+                color: #FFFFFF;
+            }
+            .stApp {
+                background-color: rgba(0, 0, 0, 0.85);
+                padding: 2rem;
+                border-radius: 12px;
+            }
+            h1, h2, h3, h4 {color: #E10600;}
+            .css-1d391kg, .css-1kyxreq {background-color: #1C1C1C; color: white; border-radius: 10px;}
+            .stButton>button {background-color: #E10600; color: white; border: none; padding: 0.5em 2em; border-radius: 8px; font-weight: bold;}
+            .stButton>button:hover {background-color: #B30000;}
+            .stSidebar {background-color: rgba(0, 0, 0, 0.85);}
+        </style>
+    ''', unsafe_allow_html=True)
+
+inject_f1_style()
+
+# Banner con logo de F1
+st.markdown("""
+    <div style='text-align: center;'>
+        <img src='https://upload.wikimedia.org/wikipedia/commons/thumb/3/33/F1.svg/1200px-F1.svg.png' width='300'/>
+        <h1 style='color: #E10600;'>Bienvenido al F1 Race Winner Predictor</h1>
+    </div>
+    <br>
+""", unsafe_allow_html=True)
+
+st.sidebar.header("Input Race Details")
+
+year = st.sidebar.number_input("Year", min_value=1950, max_value=2025, value=2025)
+round_number = st.sidebar.number_input("Round", min_value=1, max_value=25, value=3)
 st.title('Predicción de Ganadores de F1')
 st.write('Modelo de Machine Learning para predecir el resultado de carreras de Fórmula 1.')
 
@@ -68,48 +109,6 @@ if st.button('Predecir'):
     prediccion = model.predict(input_data)
     st.write(f'Predicción de carreras ganadas: {prediccion[0]}')
     # 2. Preparar los datos
-
-# --- Streamlit App ---
-# Estilo personalizado estilo F1
-def inject_f1_style():
-    st.markdown('''
-        <style>
-            body {
-                background-image: url('https://images.unsplash.com/photo-1625658201247-3b65d7fae6bb?ixlib=rb-4.0.3&auto=format&fit=crop&w=1350&q=80');
-                background-size: cover;
-                background-attachment: fixed;
-                background-repeat: no-repeat;
-                background-position: center;
-                color: #FFFFFF;
-            }
-            .stApp {
-                background-color: rgba(0, 0, 0, 0.85);
-                padding: 2rem;
-                border-radius: 12px;
-            }
-            h1, h2, h3, h4 {color: #E10600;}
-            .css-1d391kg, .css-1kyxreq {background-color: #1C1C1C; color: white; border-radius: 10px;}
-            .stButton>button {background-color: #E10600; color: white; border: none; padding: 0.5em 2em; border-radius: 8px; font-weight: bold;}
-            .stButton>button:hover {background-color: #B30000;}
-            .stSidebar {background-color: rgba(0, 0, 0, 0.85);}
-        </style>
-    ''', unsafe_allow_html=True)
-
-inject_f1_style()
-
-# Banner con logo de F1
-st.markdown("""
-    <div style='text-align: center;'>
-        <img src='https://upload.wikimedia.org/wikipedia/commons/thumb/3/33/F1.svg/1200px-F1.svg.png' width='300'/>
-        <h1 style='color: #E10600;'>Bienvenido al F1 Race Winner Predictor</h1>
-    </div>
-    <br>
-""", unsafe_allow_html=True)
-
-st.sidebar.header("Input Race Details")
-
-year = st.sidebar.number_input("Year", min_value=1950, max_value=2025, value=2025)
-round_number = st.sidebar.number_input("Round", min_value=1, max_value=25, value=3)
 nationality = st.sidebar.selectbox("Driver Nationality", winners['nationality'].unique())
 team = st.sidebar.selectbox("Team", winners['name_team'].unique())
 country = st.sidebar.selectbox("Circuit Country", winners['country'].unique())
