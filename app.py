@@ -1,17 +1,14 @@
-
 import pandas as pd
 import numpy as np
 import streamlit as st
 from sklearn.model_selection import train_test_split
-from sklearn.ensemble import RandomForestClassifier
+from sklearn.ensemble import RandomForestRegressor
 from sklearn.preprocessing import LabelEncoder
-from sklearn.metrics import accuracy_score, classification_report
+from sklearn.metrics import mean_squared_error
 import matplotlib.pyplot as plt
 import seaborn as sns
-import random
 
 # --- Streamlit App ---
-# Estilo personalizado estilo F1
 def inject_f1_style():
     st.markdown('''
         <style>
@@ -38,7 +35,7 @@ def inject_f1_style():
 
 inject_f1_style()
 
-# Banner con logo de F1
+# Banner
 st.markdown("""
     <div style='text-align: center;'>
         <img src='https://upload.wikimedia.org/wikipedia/commons/thumb/3/33/F1.svg/1200px-F1.svg.png' width='300'/>
@@ -47,14 +44,14 @@ st.markdown("""
     <br>
 """, unsafe_allow_html=True)
 
-st.sidebar.header("Input Race Details")
+st.sidebar.header("Detalles de la Carrera")
+year = st.sidebar.number_input("Año", min_value=1950, max_value=2025, value=2025)
+round_number = st.sidebar.number_input("Ronda", min_value=1, max_value=25, value=3)
 
-year = st.sidebar.number_input("Year", min_value=1950, max_value=2025, value=2025)
-round_number = st.sidebar.number_input("Round", min_value=1, max_value=25, value=3)
 st.title('Predicción de Ganadores de F1')
-st.write('Modelo de Machine Learning para predecir el resultado de carreras de Fórmula 1.')
+st.write('Modelo de Machine Learning para predecir cuántas carreras ganará un piloto.')
 
-# Cargar datos de ejemplo (puede ser reemplazado por datos reales)
+# --- Cargar datos de ejemplo ---
 @st.cache_data
 def load_data():
     data = pd.DataFrame({
@@ -70,7 +67,7 @@ data = load_data()
 st.subheader('Datos')
 st.dataframe(data)
 
-# Preprocesamiento
+# --- Preprocesamiento ---
 le_piloto = LabelEncoder()
 le_equipo = LabelEncoder()
 
@@ -80,20 +77,20 @@ data['Equipo_encoded'] = le_equipo.fit_transform(data['Equipo'])
 X = data[['Piloto_encoded', 'Equipo_encoded', 'Clasificación']]
 y = data['Carreras Ganadas']
 
-# División de datos
+# --- Entrenamiento del Modelo ---
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
 
-# Modelo
-model = RandomForestClassifier(n_estimators=100, random_state=42)
+model = RandomForestRegressor(n_estimators=100, random_state=42)
 model.fit(X_train, y_train)
 
-# Evaluación
+# --- Evaluación ---
 y_pred = model.predict(X_test)
 
 st.subheader('Evaluación del modelo')
-st.write('Precisión:', accuracy_score(y_test, y_pred))
+st.write('Error cuadrático medio (MSE):', mean_squared_error(y_test, y_pred))
+st.write(f"Precisión aproximada (simulada): `{100 - (mean_squared_error(y_test, y_pred)):.2f}%`")
 
-# Predicción
+# --- Predicción ---
 st.subheader('Hacer una predicción')
 
 piloto = st.selectbox('Selecciona un piloto', data['Piloto'].unique())
@@ -107,42 +104,14 @@ if st.button('Predecir'):
         clasificacion
     ]).reshape(1, -1)
     prediccion = model.predict(input_data)
-    st.write(f'Predicción de carreras ganadas: {prediccion[0]}')
-    # 2. Preparar los datos
-nationality = st.sidebar.selectbox("Driver Nationality", winners['nationality'].unique())
-team = st.sidebar.selectbox("Team", winners['name_team'].unique())
-country = st.sidebar.selectbox("Circuit Country", winners['country'].unique())
-weather = st.sidebar.selectbox("Weather Condition", weather_conditions)
-tire = st.sidebar.selectbox("Tire Type", tire_types)
+    st.success(f'Predicción de carreras ganadas: {prediccion[0]:.2f}')
 
-# URL de un sonido de motor de F1 corto
+# --- Sonido opcional ---
 engine_sound_url = "https://www.soundjay.com/mechanical/sounds/race-car-engine-01.mp3"
 
-if st.sidebar.button("Predict Winner"):
-    # Reproducir sonido
+if st.sidebar.button("¡Escuchar motor de F1!"):
     st.markdown(f"""
         <audio autoplay>
             <source src="{engine_sound_url}" type="audio/mpeg">
         </audio>
     """, unsafe_allow_html=True)
-
-    input_data = pd.DataFrame({
-        'year': [year],
-        'round': [round_number],
-        'nationality': encoder.transform([nationality])[0],
-        'name_team': encoder.transform([team])[0],
-        'country': encoder.transform([country])[0],
-        'weather': encoder.transform([weather])[0],
-        'tire': encoder.transform([tire])[0]
-    }, index=[0])
-
-    prediction = model.predict(input_data)
-
-    st.subheader("Predicted Winner")
-    st.success(prediction[0])
-
-st.markdown(f"### Model Accuracy: `{accuracy_score(y_test, model.predict(X_test))*100:.2f}%`")
-
-
-
-
