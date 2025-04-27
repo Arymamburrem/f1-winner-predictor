@@ -68,31 +68,6 @@ if st.button('Predecir'):
     prediccion = model.predict(input_data)
     st.write(f'Predicción de carreras ganadas: {prediccion[0]}')
     # 2. Preparar los datos
-winners = results[results['positionOrder'] == 1]
-winners = winners.merge(races[['raceId', 'year', 'round', 'circuitId', 'name']], on='raceId')
-winners = winners.merge(drivers[['driverId', 'driverRef', 'nationality']], on='driverId')
-winners = winners.merge(constructors[['constructorId', 'name']], on='constructorId', suffixes=('', '_team'))
-winners = winners.merge(circuits[['circuitId', 'country']], on='circuitId')
-
-weather_conditions = ['Sunny', 'Rainy', 'Cloudy', 'Wet', 'Dry']
-tire_types = ['Soft', 'Medium', 'Hard', 'Intermediate', 'Wet']
-
-winners['weather'] = [random.choice(weather_conditions) for _ in range(len(winners))]
-winners['tire'] = [random.choice(tire_types) for _ in range(len(winners))]
-
-winners['target_driver'] = winners['driverRef']
-
-features = winners[['year', 'round', 'nationality', 'name_team', 'country', 'weather', 'tire']]
-labels = winners['target_driver']
-
-encoder = LabelEncoder()
-for column in ['nationality', 'name_team', 'country', 'weather', 'tire']:
-    features[column] = encoder.fit_transform(features[column])
-
-X_train, X_test, y_train, y_test = train_test_split(features, labels, test_size=0.3, random_state=42)
-
-model = RandomForestClassifier(n_estimators=300, max_depth=12, random_state=42)
-model.fit(X_train, y_train)
 
 # --- Streamlit App ---
 # Estilo personalizado estilo F1
