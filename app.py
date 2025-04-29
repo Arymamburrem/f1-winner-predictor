@@ -80,8 +80,10 @@ y = data['Carreras Ganadas']
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
 
 # --- Modelo Random Forest Classifier (Básico) ---
-model_basic = RandomForestClassifier(n_estimators=100, random_state=42)
-model_basic.fit(X_train, y_train)
+from sklearn.metrics import mean_absolute_error, r2_score
+
+st.markdown(f"### R² del Modelo Básico: `{r2_score(y_test, model_basic.predict(X_test)):.2f}`")
+
 
 # --- Sidebar - Entrada de datos Básica ---
 st.sidebar.header("Predicción Básica")
@@ -169,7 +171,9 @@ if st.sidebar.button("Predecir Ganador"):
     """, unsafe_allow_html=True)
 
 # --- Mostrar precisión de los modelos ---
-st.markdown(f"### Precisión Modelo Básico: `{accuracy_score(y_test, model_basic.predict(X_test))*100:.2f}%`")
+# CAMBIO: métrica adecuada para regresión
+st.markdown(f"### R² del Modelo Básico: `{r2_score(y_test, model_basic.predict(X_test)):.2f}`")
+
 
 
 
