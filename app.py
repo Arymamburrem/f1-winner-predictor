@@ -46,6 +46,16 @@ st.markdown("""
 # --- Datos de ejemplo ---
 @st.cache_data
 def load_data():
+    df = pd.read_csv("Formula1_2023season_raceResults.csv")
+    df = df[['Driver', 'Constructor', 'Grid', 'Position', 'Points']]
+    df = df.dropna()
+    df = df[df['Position'].apply(lambda x: str(x).isdigit())]
+    df['Position'] = df['Position'].astype(int)
+    df['Wins'] = (df['Position'] == 1).astype(int)  # Nueva columna: 1 si ganó
+    return df
+
+data = load_data()
+:
     data = pd.DataFrame({
         'Piloto': ['Verstappen', 'Hamilton', 'Leclerc', 'Alonso', 'Norris'],
         'Equipo': ['Red Bull', 'Mercedes', 'Ferrari', 'Aston Martin', 'McLaren'],
@@ -56,20 +66,35 @@ def load_data():
 
 data = load_data()
 
-st.subheader('Datos de Pilotos')
-st.dataframe(data)
+st.subheader('Resultados Temporada F1 2023')
+st.dataframe(data.head(20))  # Para no mostrar todo si es grande
+
 
 # --- Gráfico de Barras ---
-st.subheader('Visualización de Carreras Ganadas')
+st.subheader('Victorias por Piloto')
+wins_by_driver = data.groupby('Driver')['Wins'].sum().sort_values(ascending=False)
 fig, ax = plt.subplots()
-sns.barplot(x='Carreras Ganadas', y='Piloto', data=data, palette='Reds_r', ax=ax)
-ax.set_xlabel('Carreras Ganadas')
+sns.barplot(x=wins_by_driver.values, y=wins_by_driver.index, palette='Reds_r', ax=ax)
+ax.set_xlabel('Cantidad de Victorias')
 ax.set_ylabel('Piloto')
 st.pyplot(fig)
 
+
 # --- Preprocesamiento ---
-le_piloto = LabelEncoder()
-le_equipo = LabelEncoder()
+le_driver = LabelEncoder()
+le_team = LabelEncoder()
+
+data['Driver_encoded'] = le_driver.fit_transform(data['Driver'])
+data['Constructor_encoded'] = le_team.fit_transform(data['Constructor'])
+
+X = data[['Driver_encoded', 'Constructor_encoded', 'Grid']]
+y = data['Wins']  # Variable objetivo: 1 si ganó
+
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+model_basic = RandomForestClassifier(n_estimators=100, random_state=42)
+model_basic.fit(X_train, y_train)
+
 
 data['Piloto_encoded'] = le_piloto.fit_transform(data['Piloto'])
 data['Equipo_encoded'] = le_equipo.fit_transform(data['Equipo'])
