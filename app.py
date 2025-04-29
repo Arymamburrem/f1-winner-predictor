@@ -43,13 +43,13 @@ st.markdown("""
     <br>
 """, unsafe_allow_html=True)
 
-# --- Datos de ejemplo simulados ---
+# --- Datos de ejemplo simulados actualizados para 2025 ---
 @st.cache_data
 def load_data():
-    # Simulación de datos de carreras de F1
+    # Simulación de datos de carreras de F1 para 2025
     data = {
-        'Driver': ['Verstappen', 'Hamilton', 'Leclerc', 'Alonso', 'Norris', 'Sainz', 'Russell', 'Perez', 'Ricciardo', 'Zhou'],
-        'Constructor': ['Red Bull', 'Mercedes', 'Ferrari', 'Aston Martin', 'McLaren', 'Ferrari', 'Mercedes', 'Red Bull', 'Alfa Romeo', 'Alfa Romeo'],
+        'Driver': ['Verstappen', 'Leclerc', 'Hamilton', 'Sainz', 'Russell', 'Norris', 'Alonso', 'Piastri', 'Gasly', 'Zhou'],
+        'Constructor': ['Red Bull', 'Ferrari', 'Mercedes', 'Ferrari', 'Mercedes', 'McLaren', 'Aston Martin', 'McLaren', 'Alpine', 'Alfa Romeo'],
         'Grid': [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
         'Position': [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
         'Points': [25, 18, 15, 12, 10, 8, 6, 4, 2, 1]
@@ -57,6 +57,7 @@ def load_data():
     df = pd.DataFrame(data)
     df['Wins'] = (df['Position'] == 1).astype(int)  # Nueva columna: 1 si ganó
     return df
+
 
 data = load_data()
 
