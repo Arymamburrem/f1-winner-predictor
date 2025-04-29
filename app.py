@@ -55,7 +55,10 @@ def load_data():
     return df
 
 data = load_data()
-:
+if st.sidebar.button('Predecir Victoria'):
+    input_data = ...
+    ...
+
     data = pd.DataFrame({
         'Piloto': ['Verstappen', 'Hamilton', 'Leclerc', 'Alonso', 'Norris'],
         'Equipo': ['Red Bull', 'Mercedes', 'Ferrari', 'Aston Martin', 'McLaren'],
