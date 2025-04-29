@@ -156,9 +156,9 @@ if st.sidebar.button("Predecir Ganador"):
         'round': [round_number]
     })
 
-    pred_adv = model_adv.predict(input_data_adv)
-    predicted_index = int(pred_adv[0]) % len(y_adv)  # simulamos la elección
-    predicted_winner = y_adv[predicted_index]
+    pred_encoded = model_adv.predict(input_data_adv)
+predicted_winner = le_winner.inverse_transform(pred_encoded)[0]
+
 
     st.success(f'Ganador Predicho: {predicted_winner}')
 
