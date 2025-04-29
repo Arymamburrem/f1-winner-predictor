@@ -184,11 +184,12 @@ if st.sidebar.button("Predecir Ganador"):
         'round': [round_number]
     })
 
-    pred_encoded = model_adv.predict(input_data_adv)
-predicted_winner = le_winner.inverse_transform(pred_encoded)[0]
-
+    pred_adv = model_adv.predict(input_data_adv)
+    predicted_index = int(pred_adv[0]) % len(y_adv)
+    predicted_winner = y_adv[predicted_index]
 
     st.success(f'Ganador Predicho: {predicted_winner}')
+
 
     # Sonido de motor también
     engine_sound_url = "https://www.soundjay.com/mechanical/sounds/race-car-engine-01.mp3"
