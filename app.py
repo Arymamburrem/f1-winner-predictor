@@ -4,7 +4,7 @@ import streamlit as st
 from sklearn.model_selection import train_test_split
 from sklearn.ensemble import RandomForestClassifier, RandomForestRegressor
 from sklearn.preprocessing import LabelEncoder
-from sklearn.metrics import accuracy_score, mean_absolute_error, r2_score
+from sklearn.metrics import accuracy_score
 import matplotlib.pyplot as plt
 import seaborn as sns
 
@@ -43,21 +43,31 @@ st.markdown("""
     <br>
 """, unsafe_allow_html=True)
 
-# --- Datos de ejemplo ---
+# --- Datos de ejemplo simulados ---
 @st.cache_data
 def load_data():
-    df = pd.read_csv("Formula1_2023season_raceResults.csv")
-    df = df[['Driver', 'Constructor', 'Grid', 'Position', 'Points']]
-    df = df.dropna()
-    df = df[df['Position'].apply(lambda x: str(x).isdigit())]
-    df['Position'] = df['Position'].astype(int)
-    df['Wins'] = (df['Position'] == 1).astype(int)
+    # Simulación de datos de carreras de F1
+    data = {
+        'Driver': ['Verstappen', 'Hamilton', 'Leclerc', 'Alonso', 'Norris', 'Sainz', 'Russell', 'Perez', 'Ricciardo', 'Zhou'],
+        'Constructor': ['Red Bull', 'Mercedes', 'Ferrari', 'Aston Martin', 'McLaren', 'Ferrari', 'Mercedes', 'Red Bull', 'Alfa Romeo', 'Alfa Romeo'],
+        'Grid': [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+        'Position': [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+        'Points': [25, 18, 15, 12, 10, 8, 6, 4, 2, 1]
+    }
+    df = pd.DataFrame(data)
+    df['Wins'] = (df['Position'] == 1).astype(int)  # Nueva columna: 1 si ganó
     return df
+
+data = load_data()
+if st.sidebar.button('Predecir Victoria'):
+    input_data = ...
+    ...
 
 data = load_data()
 
 st.subheader('Resultados Temporada F1 2023')
-st.dataframe(data.head(20))
+st.dataframe(data.head(20))  # Para no mostrar todo si es grande
+
 
 # --- Gráfico de Barras ---
 st.subheader('Victorias por Piloto')
@@ -68,6 +78,7 @@ ax.set_xlabel('Cantidad de Victorias')
 ax.set_ylabel('Piloto')
 st.pyplot(fig)
 
+
 # --- Preprocesamiento ---
 le_driver = LabelEncoder()
 le_team = LabelEncoder()
@@ -75,52 +86,32 @@ le_team = LabelEncoder()
 data['Driver_encoded'] = le_driver.fit_transform(data['Driver'])
 data['Constructor_encoded'] = le_team.fit_transform(data['Constructor'])
 
-X_basic = data[['Driver_encoded', 'Constructor_encoded', 'Grid']]
-y_basic = data['Wins']
-
-X_train_basic, X_test_basic, y_train_basic, y_test_basic = train_test_split(X_basic, y_basic, test_size=0.2, random_state=42)
-
-model_basic = RandomForestClassifier(n_estimators=100, random_state=42)
-model_basic.fit(X_train_basic, y_train_basic)
-
-# --- Simulamos otro dataset para regresión ---
-data_adv = pd.DataFrame({
-    'Piloto': ['Verstappen', 'Hamilton', 'Leclerc', 'Alonso', 'Norris'],
-    'Equipo': ['Red Bull', 'Mercedes', 'Ferrari', 'Aston Martin', 'McLaren'],
-    'Clasificación': [1, 2, 3, 4, 5],
-    'Carreras Ganadas': [10, 8, 5, 4, 2]
-})
-
-le_piloto = LabelEncoder()
-le_equipo = LabelEncoder()
-
-data_adv['Piloto_encoded'] = le_piloto.fit_transform(data_adv['Piloto'])
-data_adv['Equipo_encoded'] = le_equipo.fit_transform(data_adv['Equipo'])
-
-X = data_adv[['Piloto_encoded', 'Equipo_encoded', 'Clasificación']]
-y = data_adv['Carreras Ganadas']
+X = data[['Driver_encoded', 'Constructor_encoded', 'Grid']]
+y = data['Wins']  # Variable objetivo: 1 si ganó
 
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
 
-model_reg = RandomForestRegressor(n_estimators=100, random_state=42)
-model_reg.fit(X_train, y_train)
+model_basic = RandomForestClassifier(n_estimators=100, random_state=42)
+model_basic.fit(X_train, y_train)
+
 
 # --- Sidebar - Entrada de datos Básica ---
 st.sidebar.header("Predicción Básica")
-piloto = st.sidebar.selectbox('Selecciona un Piloto', data_adv['Piloto'].unique())
-equipo = st.sidebar.selectbox('Selecciona un Equipo', data_adv['Equipo'].unique())
+piloto = st.sidebar.selectbox('Selecciona un Piloto', data['Driver'].unique())
+equipo = st.sidebar.selectbox('Selecciona un Equipo', data['Constructor'].unique())
 clasificacion = st.sidebar.slider('Clasificación en Qualy', 1, 20, 1)
 
 if st.sidebar.button('Predecir Carreras Ganadas'):
     input_data = np.array([
-        le_piloto.transform([piloto])[0],
-        le_equipo.transform([equipo])[0],
+        le_driver.transform([piloto])[0],
+        le_team.transform([equipo])[0],
         clasificacion
     ]).reshape(1, -1)
-    prediccion = model_reg.predict(input_data)
+    prediccion = model_basic.predict(input_data)
 
-    st.success(f'Predicción de carreras ganadas: {int(prediccion[0])}')
+    st.success(f'Predicción de carreras ganadas: {prediccion[0]}')
 
+    # Sonido Motor
     engine_sound_url = "https://www.soundjay.com/mechanical/sounds/race-car-engine-01.mp3"
     st.markdown(f"""
         <audio autoplay>
@@ -129,12 +120,13 @@ if st.sidebar.button('Predecir Carreras Ganadas'):
     """, unsafe_allow_html=True)
 
 # --- Datos para la Predicción Avanzada (simulados) ---
+weather_conditions = ['Soleado', 'Lluvia', 'Nublado']
+tire_types = ['Soft', 'Medium', 'Hard']
 nationalities = ['Holandés', 'Británico', 'Monegasco', 'Español', 'Australiano']
 teams = ['Red Bull', 'Mercedes', 'Ferrari', 'Aston Martin', 'McLaren']
 countries = ['España', 'Italia', 'Mónaco', 'Reino Unido', 'Australia']
-weather_conditions = ['Soleado', 'Lluvia', 'Nublado']
-tire_types = ['Soft', 'Medium', 'Hard']
 
+# --- Sidebar - Entrada de datos Avanzada ---
 st.sidebar.header("Predicción Avanzada")
 year = st.sidebar.number_input("Año", min_value=1950, max_value=2025, value=2025)
 round_number = st.sidebar.number_input("Ronda", min_value=1, max_value=25, value=3)
@@ -144,7 +136,7 @@ country = st.sidebar.selectbox("País del Circuito", countries)
 weather = st.sidebar.selectbox("Condición Climática", weather_conditions)
 tire = st.sidebar.selectbox("Tipo de Neumático", tire_types)
 
-# --- Modelo simulado para predicción avanzada ---
+# --- Simular otro modelo Regresor (para Predicción Avanzada) ---
 X_adv = pd.DataFrame({
     'nationality': np.random.randint(0, 5, 50),
     'team': np.random.randint(0, 5, 50),
@@ -160,8 +152,9 @@ y_adv = np.random.choice(['Verstappen', 'Hamilton', 'Leclerc', 'Alonso', 'Norris
 X_adv_train, X_adv_test, y_adv_train, y_adv_test = train_test_split(X_adv, y_adv, test_size=0.2, random_state=42)
 
 model_adv = RandomForestRegressor(n_estimators=100, random_state=42)
-model_adv.fit(X_adv_train, np.arange(len(y_adv_train)))
+model_adv.fit(X_adv_train, np.arange(len(y_adv_train)))  # dummy fit
 
+# --- Predicción Avanzada ---
 if st.sidebar.button("Predecir Ganador"):
     input_data_adv = pd.DataFrame({
         'nationality': [nationalities.index(nationality)],
@@ -179,6 +172,8 @@ if st.sidebar.button("Predecir Ganador"):
 
     st.success(f'Ganador Predicho: {predicted_winner}')
 
+
+    # Sonido de motor también
     engine_sound_url = "https://www.soundjay.com/mechanical/sounds/race-car-engine-01.mp3"
     st.markdown(f"""
         <audio autoplay>
@@ -186,7 +181,10 @@ if st.sidebar.button("Predecir Ganador"):
         </audio>
     """, unsafe_allow_html=True)
 
-st.markdown(f"### R² del Modelo de Clasificación: `{r2_score(y_test_basic, model_basic.predict(X_test_basic)):.2f}`")
+# --- Mostrar precisión de los modelos ---
+# CAMBIO: métrica adecuada para regresión
+st.markdown(f"### R² del Modelo Básico: `{r2_score(y_test, model_basic.predict(X_test)):.2f}`")
+
 
 
 
