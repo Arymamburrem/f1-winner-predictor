@@ -1,4 +1,3 @@
-# f1_predictor_app.py
 import pandas as pd
 import numpy as np
 import streamlit as st
@@ -33,8 +32,9 @@ def cargar_datos():
     registros = []
     for carrera in races:
         for resultado in carrera['Results']:
-            # Comprobar si 'position' está presente, si no, usar np.nan
+            # Verificación adicional para asegurar que 'position' exista en los resultados
             position = resultado.get('position', np.nan)
+            # Si 'position' no es un valor válido, asignamos NaN
             registros.append({
                 'raceName': carrera['raceName'],
                 'date': carrera['date'],
@@ -45,12 +45,21 @@ def cargar_datos():
                 'position': int(position) if str(position).isdigit() else np.nan,
                 'status': resultado['status']
             })
+    
+    # Crear el DataFrame y eliminar cualquier fila donde 'position' sea NaN
     df = pd.DataFrame(registros)
-    df.dropna(subset=['position'], inplace=True)  # Eliminar filas donde no haya posición
-    df['win'] = (df['position'] == 1).astype(int)  # 1 si la posición es la ganadora
+    
+    # Asegurarse de que la columna 'position' exista antes de intentar manipularla
+    if 'position' in df.columns:
+        df.dropna(subset=['position'], inplace=True)  # Eliminar filas donde no haya posición
+        df['win'] = (df['position'] == 1).astype(int)  # 1 si la posición es la ganadora
+    
     return df
 
+# Llamada para cargar los datos
 data = cargar_datos()
+
+# Mostrar los primeros datos cargados
 st.subheader("📊 Datos Reales Temporada 2025")
 st.dataframe(data.head(10))
 
@@ -96,6 +105,7 @@ if st.sidebar.button("Predecir Ganador"):
     prediccion = model.predict(datos_input)
     resultado = "GANARÁ la carrera" if prediccion[0] == 1 else "NO ganará"
     st.success(f"🧠 Según el modelo, {piloto_sel} {resultado}.")
+
 
 
 
