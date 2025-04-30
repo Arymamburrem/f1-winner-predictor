@@ -39,6 +39,14 @@ if 'logueado' not in st.session_state:
 login()
 
 if not st.session_state['logueado']:
+    st.stop()
+if not st.session_state['premium']:
+    with st.sidebar.expander("🎁 ¿Querés funciones premium?"):
+        st.write("🔓 Accedé a predicciones avanzadas, rendimiento por clima, estrategia de neumáticos y más.")
+        st.write("💳 Contactanos por WhatsApp para activar tu cuenta premium.")
+
+
+if not st.session_state['logueado']:
     st.stop()  # Detiene ejecución si no inició sesión
 
 # --- CONFIGURACION GENERAL ---
