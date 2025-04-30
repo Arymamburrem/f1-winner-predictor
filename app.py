@@ -1,116 +1,101 @@
+# f1_predictor_app.py
 import pandas as pd
 import numpy as np
 import streamlit as st
+import requests
+from sklearn.ensemble import RandomForestClassifier
 from sklearn.model_selection import train_test_split
-from sklearn.ensemble import RandomForestClassifier, RandomForestRegressor
 from sklearn.preprocessing import LabelEncoder
-from sklearn.metrics import accuracy_score, r2_score
+from sklearn.metrics import accuracy_score, classification_report
 import matplotlib.pyplot as plt
 import seaborn as sns
 
-# --- Estilo personalizado F1 ---
-def inject_f1_style():
-    st.markdown('''
-        <style>
-            body {
-                background-image: url('https://images.unsplash.com/photo-1504384308090-c894fdcc538d');
-                background-size: cover;
-                background-attachment: fixed;
-                background-repeat: no-repeat;
-                background-position: center;
-                color: #FFFFFF;
-            }
-            .stApp {
-                background-color: rgba(0, 0, 0, 0.85);
-                padding: 2rem;
-                border-radius: 12px;
-            }
-            h1, h2, h3, h4 {color: #E10600;}
-            .stButton>button {background-color: #E10600; color: white; border: none; padding: 0.5em 2em; border-radius: 8px; font-weight: bold;}
-            .stButton>button:hover {background-color: #B30000;}
-            .stSidebar {background-color: rgba(0, 0, 0, 0.85);}
-        </style>
-    ''', unsafe_allow_html=True)
-
-inject_f1_style()
-
-# --- Banner principal ---
+# --- CONFIGURACION GENERAL ---
+st.set_page_config(page_title="F1 Race Predictor", layout="wide")
 st.markdown("""
-    <div style='text-align: center;'>
-        <img src='https://upload.wikimedia.org/wikipedia/commons/thumb/3/33/F1.svg/1200px-F1.svg.png' width='300'/>
-        <h1 style='color: #E10600;'>F1 Race Winner Predictor</h1>
-    </div>
-    <br>
+    <style>
+        .main {background-color: #000000; color: white;}
+        h1, h2, h3 {color: #E10600;}
+        .stButton>button {background-color: #E10600; color: white;}
+        .stButton>button:hover {background-color: #990000;}
+    </style>
 """, unsafe_allow_html=True)
 
-# --- Datos de ejemplo simulados actualizados para 2025 ---
+st.title("🏎️ F1 Race Winner Predictor 2025")
+
+# --- FUNCIONES DE DATOS REALES ---
 @st.cache_data
-def load_data():
-    # Simulación de datos de carreras de F1 para 2025
-    data = {
-        'Driver': ['Verstappen', 'Leclerc', 'Hamilton', 'Sainz', 'Russell', 'Norris', 'Alonso', 'Piastri', 'Gasly', 'Zhou'],
-        'Constructor': ['Red Bull', 'Ferrari', 'Mercedes', 'Ferrari', 'Mercedes', 'McLaren', 'Aston Martin', 'McLaren', 'Alpine', 'Alfa Romeo'],
-        'Grid': [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
-        'Position': [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
-        'Points': [25, 18, 15, 12, 10, 8, 6, 4, 2, 1]
-    }
-    df = pd.DataFrame(data)
-    df['Wins'] = (df['Position'] == 1).astype(int)  # Nueva columna: 1 si ganó
+
+def cargar_datos():
+    url = "https://ergast.com/api/f1/2023/results.json?limit=1000"
+    r = requests.get(url)
+    json_data = r.json()
+    races = json_data['MRData']['RaceTable']['Races']
+    registros = []
+    for carrera in races:
+        for resultado in carrera['Results']:
+            registros.append({
+                'raceName': carrera['raceName'],
+                'date': carrera['date'],
+                'circuit': carrera['Circuit']['circuitName'],
+                'driver': resultado['Driver']['familyName'],
+                'constructor': resultado['Constructor']['name'],
+                'grid': int(resultado['grid']),
+                'position': int(resultado['position']) if resultado['position'].isdigit() else np.nan,
+                'status': resultado['status']
+            })
+    df = pd.DataFrame(registros)
+    df.dropna(inplace=True)
+    df['win'] = (df['position'] == 1).astype(int)
     return df
 
+data = cargar_datos()
+st.subheader("📊 Datos Reales Temporada 2023")
+st.dataframe(data.head(10))
 
-data = load_data()
-
-# --- Gráfico de Barras ---
-st.subheader('Victorias por Piloto')
-wins_by_driver = data.groupby('Driver')['Wins'].sum().sort_values(ascending=False)
+# --- VISUALIZACION ---
+st.subheader("🏁 Victorias por Piloto")
+wins = data[data['win'] == 1].groupby('driver').size().sort_values(ascending=False)
 fig, ax = plt.subplots()
-sns.barplot(x=wins_by_driver.values, y=wins_by_driver.index, palette='Reds_r', ax=ax)
-ax.set_xlabel('Cantidad de Victorias')
-ax.set_ylabel('Piloto')
+sns.barplot(x=wins.values, y=wins.index, ax=ax, palette="Reds_r")
+ax.set_xlabel("Victorias")
+ax.set_ylabel("Piloto")
 st.pyplot(fig)
 
-# --- Preprocesamiento ---
+# --- MODELO PREDICTIVO ---
 le_driver = LabelEncoder()
 le_team = LabelEncoder()
+data['driver_enc'] = le_driver.fit_transform(data['driver'])
+data['team_enc'] = le_team.fit_transform(data['constructor'])
 
-data['Driver_encoded'] = le_driver.fit_transform(data['Driver'])
-data['Constructor_encoded'] = le_team.fit_transform(data['Constructor'])
-
-X = data[['Driver_encoded', 'Constructor_encoded', 'Grid']]
-y = data['Wins']  # Variable objetivo: 1 si ganó
+X = data[['driver_enc', 'team_enc', 'grid']]
+y = data['win']
 
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+model = RandomForestClassifier(n_estimators=100, random_state=42)
+model.fit(X_train, y_train)
+y_pred = model.predict(X_test)
 
-model_basic = RandomForestClassifier(n_estimators=100, random_state=42)
-model_basic.fit(X_train, y_train)
+st.markdown(f"### 🎯 Precisión del modelo: `{accuracy_score(y_test, y_pred):.2f}`")
 
-# --- Sidebar - Entrada de datos Básica ---
-st.sidebar.header("Predicción Básica")
-piloto = st.sidebar.selectbox('Selecciona un Piloto', data['Driver'].unique())
-equipo = st.sidebar.selectbox('Selecciona un Equipo', data['Constructor'].unique())
-clasificacion = st.sidebar.slider('Clasificación en Qualy', 1, 20, 1)
+# --- FORMULARIO DE PREDICCION ---
+st.sidebar.header("🔮 Predicción Personalizada")
+pilotos = list(le_driver.classes_)
+equipos = list(le_team.classes_)
+piloto_sel = st.sidebar.selectbox("Piloto", pilotos)
+equipo_sel = st.sidebar.selectbox("Equipo", equipos)
+grid_sel = st.sidebar.slider("Posición de largada (Grid)", 1, 20, 5)
 
-if st.sidebar.button('Predecir Carreras Ganadas'):
-    input_data = np.array([
-        le_driver.transform([piloto])[0],
-        le_team.transform([equipo])[0],
-        clasificacion
+if st.sidebar.button("Predecir Ganador"):
+    datos_input = np.array([
+        le_driver.transform([piloto_sel])[0],
+        le_team.transform([equipo_sel])[0],
+        grid_sel
     ]).reshape(1, -1)
-    prediccion = model_basic.predict(input_data)
+    prediccion = model.predict(datos_input)
+    resultado = "GANARÁ la carrera" if prediccion[0] == 1 else "NO ganará"
+    st.success(f"🧠 Según el modelo, {piloto_sel} {resultado}.")
 
-    st.success(f'Predicción de carreras ganadas: {prediccion[0]}')
-
-    # Sonido Motor
-    engine_sound_url = "https://www.soundjay.com/mechanical/sounds/race-car-engine-01.mp3"
-    st.markdown(f"""
-        <audio autoplay>
-            <source src="{engine_sound_url}" type="audio/mpeg">
-        </audio>
-    """, unsafe_allow_html=True)
-
-# --- Mostrar precisión de los modelos ---
-st.markdown(f"### R² del Modelo Básico: `{r2_score(y_test, model_basic.predict(X_test)):.2f}`")
 
 
 
