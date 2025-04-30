@@ -1,4 +1,3 @@
-# f1_predictor_app.py
 import pandas as pd
 import numpy as np
 import streamlit as st
@@ -6,12 +5,12 @@ import requests
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import LabelEncoder
-from sklearn.metrics import accuracy_score, classification_report
+from sklearn.metrics import accuracy_score
 import matplotlib.pyplot as plt
 import seaborn as sns
 
 # --- CONFIGURACION GENERAL ---
-st.set_page_config(page_title="F1 Race Predictor", layout="wide")
+st.set_page_config(page_title="F1 Race Predictor", layout="wide")  # Debe ser lo primero
 
 # Fondo de pantalla de F1 (asegurate de usar la URL de la imagen correcta)
 st.markdown("""
@@ -34,23 +33,12 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
-st.set_page_config(page_title="F1 Race Predictor", layout="wide")
-st.markdown("""
-    <style>
-        .main {background-color: #000000; color: white;}
-        h1, h2, h3 {color: #E10600;}
-        .stButton>button {background-color: #E10600; color: white;}
-        .stButton>button:hover {background-color: #990000;}
-    </style>
-""", unsafe_allow_html=True)
-
 st.title("🏎️ F1 Race Winner Predictor 2025")
 
 # --- FUNCIONES DE DATOS REALES ---
 @st.cache_data
-
 def cargar_datos():
-    url = "https://ergast.com/api/f1/2023/results.json?limit=1000"
+    url = "https://ergast.com/api/f1/2025/results.json?limit=1000"  # Cambiado a 2025
     r = requests.get(url)
     json_data = r.json()
     races = json_data['MRData']['RaceTable']['Races']
@@ -73,7 +61,7 @@ def cargar_datos():
     return df
 
 data = cargar_datos()
-st.subheader("📊 Datos Reales Temporada 2023")
+st.subheader("📊 Datos Reales Temporada 2025")
 st.dataframe(data.head(10))
 
 # --- VISUALIZACION ---
@@ -118,6 +106,7 @@ if st.sidebar.button("Predecir Ganador"):
     prediccion = model.predict(datos_input)
     resultado = "GANARÁ la carrera" if prediccion[0] == 1 else "NO ganará"
     st.success(f"🧠 Según el modelo, {piloto_sel} {resultado}.")
+
 
 
 
