@@ -17,7 +17,7 @@ st.set_page_config(page_title="F1 Predictor 2025 por AryMamburrem", layout="wide
 st.markdown("""
     <style>
         .stApp {
-            background-image: url("https://www.transparenttextures.com/patterns/asfalt-light.png");
+            background-image: url("https://www.pexels.com/es-es/foto/gran-premio-de-abu-dabi-de-formula-1-haas-en-formacion-con-fuegos-artificiales-29817508/");
             background-size: cover;
             color: white;
         }
