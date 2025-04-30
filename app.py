@@ -9,24 +9,22 @@ from sklearn.preprocessing import LabelEncoder
 from sklearn.metrics import accuracy_score
 import matplotlib.pyplot as plt
 import seaborn as sns
+from datetime import datetime
 
 # --- CONFIGURACIÓN GENERAL ---
-from datetime import datetime
-import streamlit as st
+st.set_page_config(page_title="F1 Predictor 2025", layout="wide")
 
-# --- CONFIGURACIÓN DE LA PÁGINA ---
-st.set_page_config(page_title="F1 Race Predictor 2025", layout="wide")
-
-# --- ESTILOS PERSONALIZADOS ---
+# --- ESTILO PERSONALIZADO Y LOGO ---
 st.markdown("""
     <style>
-        .main {background-color: #000000; color: white;}
-        h1, h2, h3 {color: #E10600;}
+        body {background-color: #0d0d0d; color: white;}
+        .main {background-color: #0d0d0d;}
+        h1, h2, h3, h4 {color: #E10600;}
         .stButton>button {background-color: #E10600; color: white;}
         .stButton>button:hover {background-color: #990000;}
         .next-race-box {
-            background-color: #111;
-            border-left: 6px solid #E10600;
+            background: rgba(255, 255, 255, 0.05);
+            border-left: 5px solid #E10600;
             padding: 1rem;
             margin-bottom: 2rem;
             border-radius: 8px;
@@ -34,44 +32,10 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
-# --- CALENDARIO DE CARRERAS 2025 ---
-calendario_2025 = [
-    {"nombre": "GP de Bahréin", "circuito": "Sakhir", "fecha": "2025-03-14", "pais": "🇧🇭"},
-    {"nombre": "GP de Arabia Saudita", "circuito": "Jeddah", "fecha": "2025-03-21", "pais": "🇸🇦"},
-    {"nombre": "GP de Australia", "circuito": "Albert Park", "fecha": "2025-04-06", "pais": "🇦🇺"},
-    {"nombre": "GP de Japón", "circuito": "Suzuka", "fecha": "2025-04-13", "pais": "🇯🇵"},
-    {"nombre": "GP de China", "circuito": "Shanghai", "fecha": "2025-04-20", "pais": "🇨🇳"},
-    {"nombre": "GP de Miami", "circuito": "Miami International Autodrome", "fecha": "2025-05-04", "pais": "🇺🇸"},
-    {"nombre": "GP de Emilia-Romaña", "circuito": "Imola", "fecha": "2025-05-18", "pais": "🇮🇹"},
-    # Agrega más carreras si lo deseas
-]
+st.image("https://upload.wikimedia.org/wikipedia/commons/thumb/3/33/F1.svg/800px-F1.svg.png", width=150)
+st.title("🏎️ F1 Race Predictor 2025")
 
-# --- FUNCIÓN PARA OBTENER LA PRÓXIMA CARRERA ---
-def obtener_proxima_carrera():
-    hoy = datetime.now().date()
-    for carrera in calendario_2025:
-        fecha = datetime.strptime(carrera["fecha"], "%Y-%m-%d").date()
-        if fecha >= hoy:
-            return carrera
-    return None
-
-# --- MOSTRAR INFORMACIÓN DE LA PRÓXIMA CARRERA ---
-proxima = obtener_proxima_carrera()
-if proxima:
-    st.markdown('<div class="next-race-box">', unsafe_allow_html=True)
-    st.markdown(f"### 🏁 Próxima Carrera de F1")
-    st.markdown(f"**{proxima['nombre']}** {proxima['pais']}")
-    st.markdown(f"📍 Circuito: *{proxima['circuito']}*")
-    st.markdown(f"📆 Fecha: *{proxima['fecha']}*")
-    st.markdown('</div>', unsafe_allow_html=True)
-else:
-    st.warning("No hay más carreras registradas en el calendario 2025.")
-
-
-st.title("🏎️ F1 Race Winner Predictor 2025")
-from datetime import datetime
-
-# --- CALENDARIO MANUAL ACTUALIZADO 2025 (puedes ampliar)
+# --- CALENDARIO 2025 ---
 calendario_2025 = [
     {"nombre": "GP de Bahréin", "circuito": "Sakhir", "fecha": "2025-03-14"},
     {"nombre": "GP de Arabia Saudita", "circuito": "Jeddah", "fecha": "2025-03-21"},
@@ -80,7 +44,6 @@ calendario_2025 = [
     {"nombre": "GP de China", "circuito": "Shanghai", "fecha": "2025-04-20"},
     {"nombre": "GP de Miami", "circuito": "Miami International Autodrome", "fecha": "2025-05-04"},
     {"nombre": "GP de Emilia-Romaña", "circuito": "Imola", "fecha": "2025-05-18"},
-    # ... agrega más carreras si quieres
 ]
 
 def obtener_proxima_carrera():
@@ -93,25 +56,23 @@ def obtener_proxima_carrera():
 
 proxima = obtener_proxima_carrera()
 
-# --- Mostrar la próxima carrera
 if proxima:
-    st.markdown("## 🏁 Próxima Carrera de F1")
-    st.markdown(f"""
-        **{proxima['nombre']}**  
-        📍 *{proxima['circuito']}*  
-        📆 *{proxima['fecha']}*
-    """)
+    st.markdown('<div class="next-race-box">', unsafe_allow_html=True)
+    st.markdown("### 🏁 Próxima Carrera")
+    st.markdown(f"**{proxima['nombre']}**")
+    st.markdown(f"📍 Circuito: *{proxima['circuito']}*")
+    st.markdown(f"📆 Fecha: *{proxima['fecha']}*")
+    st.markdown('</div>', unsafe_allow_html=True)
 else:
     st.warning("No hay más carreras registradas en el calendario 2025.")
 
-
-# --- FUNCIÓN PARA CARGAR DATOS ---
+# --- CARGAR DATOS DESDE ERGAST API ---
 @st.cache_data
 def cargar_datos():
-    url = "https://api.jolpi.ca/ergast/f1/2025/results.json?limit=1000"
+    url = "https://ergast.com/api/f1/2023/results.json?limit=1000"
     r = requests.get(url)
     if r.status_code != 200:
-        st.error("Error al acceder a la API Jolpica.")
+        st.error("Error al acceder a la API.")
         return pd.DataFrame()
     json_data = r.json()
     races = json_data.get('MRData', {}).get('RaceTable', {}).get('Races', [])
@@ -132,22 +93,21 @@ def cargar_datos():
                 })
     df = pd.DataFrame(registros)
     if df.empty:
-        st.error("No se encontraron datos válidos para la temporada 2025.")
+        st.error("No se encontraron datos válidos.")
         return df
     df['win'] = (df['position'] == 1).astype(int)
     return df
 
-# --- CARGAR DATOS ---
 data = cargar_datos()
 
 if data.empty:
     st.stop()
 
-# --- VISUALIZACIÓN DE DATOS ---
-st.subheader("📊 Datos Reales Temporada 2025")
+# --- DATOS VISUALES ---
+st.subheader("📊 Datos Temporada 2023")
 st.dataframe(data.head(10))
 
-st.subheader("🏁 Victorias por Piloto")
+st.subheader("🏆 Victorias por Piloto")
 wins = data[data['win'] == 1].groupby('driver').size().sort_values(ascending=False)
 fig, ax = plt.subplots()
 sns.barplot(x=wins.values, y=wins.index, ax=ax, palette="Reds_r")
@@ -155,7 +115,7 @@ ax.set_xlabel("Victorias")
 ax.set_ylabel("Piloto")
 st.pyplot(fig)
 
-# --- MODELO PREDICTIVO ---
+# --- ENTRENAMIENTO DEL MODELO ---
 le_driver = LabelEncoder()
 le_team = LabelEncoder()
 data['driver_enc'] = le_driver.fit_transform(data['driver'])
@@ -169,7 +129,7 @@ model = RandomForestClassifier(n_estimators=100, random_state=42)
 model.fit(X_train, y_train)
 y_pred = model.predict(X_test)
 
-st.markdown(f"### 🎯 Precisión del modelo: `{accuracy_score(y_test, y_pred):.2f}`")
+st.markdown(f"### 🎯 Precisión del Modelo: `{accuracy_score(y_test, y_pred):.2f}`")
 
 # --- FORMULARIO DE PREDICCIÓN ---
 st.sidebar.header("🔮 Predicción Personalizada")
@@ -177,17 +137,19 @@ pilotos = list(le_driver.classes_)
 equipos = list(le_team.classes_)
 piloto_sel = st.sidebar.selectbox("Piloto", pilotos)
 equipo_sel = st.sidebar.selectbox("Equipo", equipos)
-grid_sel = st.sidebar.slider("Posición de largada (Grid)", 1, 20, 5)
+grid_sel = st.sidebar.slider("Posición de largada", 1, 20, 5)
 
 if st.sidebar.button("Predecir Ganador"):
-    datos_input = np.array([
+    entrada = np.array([
         le_driver.transform([piloto_sel])[0],
         le_team.transform([equipo_sel])[0],
         grid_sel
     ]).reshape(1, -1)
-    prediccion = model.predict(datos_input)
+    prediccion = model.predict(entrada)
     resultado = "GANARÁ la carrera" if prediccion[0] == 1 else "NO ganará"
     st.success(f"🧠 Según el modelo, {piloto_sel} {resultado}.")
+
+
 
 
 
