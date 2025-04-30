@@ -25,15 +25,16 @@ st.title("🏎️ F1 Race Winner Predictor 2025")
 
 # --- FUNCIONES DE DATOS REALES ---
 @st.cache_data
-
 def cargar_datos():
-    url = "https://ergast.com/api/f1/2023/results.json?limit=1000"
+    url = "https://ergast.com/api/f1/2025/results.json?limit=1000"  # Actualizado a la temporada 2025
     r = requests.get(url)
     json_data = r.json()
     races = json_data['MRData']['RaceTable']['Races']
     registros = []
     for carrera in races:
         for resultado in carrera['Results']:
+            # Comprobar si 'position' está presente, si no, usar np.nan
+            position = resultado.get('position', np.nan)
             registros.append({
                 'raceName': carrera['raceName'],
                 'date': carrera['date'],
@@ -41,16 +42,16 @@ def cargar_datos():
                 'driver': resultado['Driver']['familyName'],
                 'constructor': resultado['Constructor']['name'],
                 'grid': int(resultado['grid']),
-                'position': int(resultado['position']) if resultado['position'].isdigit() else np.nan,
+                'position': int(position) if str(position).isdigit() else np.nan,
                 'status': resultado['status']
             })
     df = pd.DataFrame(registros)
-    df.dropna(inplace=True)
-    df['win'] = (df['position'] == 1).astype(int)
+    df.dropna(subset=['position'], inplace=True)  # Eliminar filas donde no haya posición
+    df['win'] = (df['position'] == 1).astype(int)  # 1 si la posición es la ganadora
     return df
 
 data = cargar_datos()
-st.subheader("📊 Datos Reales Temporada 2023")
+st.subheader("📊 Datos Reales Temporada 2025")
 st.dataframe(data.head(10))
 
 # --- VISUALIZACION ---
@@ -95,6 +96,7 @@ if st.sidebar.button("Predecir Ganador"):
     prediccion = model.predict(datos_input)
     resultado = "GANARÁ la carrera" if prediccion[0] == 1 else "NO ganará"
     st.success(f"🧠 Según el modelo, {piloto_sel} {resultado}.")
+
 
 
 
