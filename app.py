@@ -17,7 +17,7 @@ st.set_page_config(page_title="F1 Predictor 2025 por AryMamburrem", layout="wide
 st.markdown("""
     <style>
         .stApp {
-            background-image: url("https://www.pexels.com/es-es/foto/gran-premio-de-abu-dabi-de-formula-1-haas-en-formacion-con-fuegos-artificiales-29817508/");
+            background-image: url("https://images.pexels.com/photos/2076249/pexels-photo-2076249.jpeg");
             background-size: cover;
             color: white;
         }
@@ -46,6 +46,7 @@ st.markdown("""
         }
     </style>
 """, unsafe_allow_html=True)
+
 
 # --- LOGO GRANDE Y CENTRADO ---
 st.markdown('<div class="logo-container">', unsafe_allow_html=True)
