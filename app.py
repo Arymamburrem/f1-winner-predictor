@@ -22,6 +22,41 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 st.title("🏎️ F1 Race Winner Predictor 2025")
+from datetime import datetime
+
+# --- CALENDARIO MANUAL ACTUALIZADO 2025 (puedes ampliar)
+calendario_2025 = [
+    {"nombre": "GP de Bahréin", "circuito": "Sakhir", "fecha": "2025-03-14"},
+    {"nombre": "GP de Arabia Saudita", "circuito": "Jeddah", "fecha": "2025-03-21"},
+    {"nombre": "GP de Australia", "circuito": "Albert Park", "fecha": "2025-04-06"},
+    {"nombre": "GP de Japón", "circuito": "Suzuka", "fecha": "2025-04-13"},
+    {"nombre": "GP de China", "circuito": "Shanghai", "fecha": "2025-04-20"},
+    {"nombre": "GP de Miami", "circuito": "Miami International Autodrome", "fecha": "2025-05-04"},
+    {"nombre": "GP de Emilia-Romaña", "circuito": "Imola", "fecha": "2025-05-18"},
+    # ... agrega más carreras si quieres
+]
+
+def obtener_proxima_carrera():
+    hoy = datetime.now().date()
+    for carrera in calendario_2025:
+        fecha = datetime.strptime(carrera["fecha"], "%Y-%m-%d").date()
+        if fecha >= hoy:
+            return carrera
+    return None
+
+proxima = obtener_proxima_carrera()
+
+# --- Mostrar la próxima carrera
+if proxima:
+    st.markdown("## 🏁 Próxima Carrera de F1")
+    st.markdown(f"""
+        **{proxima['nombre']}**  
+        📍 *{proxima['circuito']}*  
+        📆 *{proxima['fecha']}*
+    """)
+else:
+    st.warning("No hay más carreras registradas en el calendario 2025.")
+
 
 # --- FUNCIÓN PARA CARGAR DATOS ---
 @st.cache_data
