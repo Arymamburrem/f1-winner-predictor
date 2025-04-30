@@ -12,6 +12,29 @@ import seaborn as sns
 
 # --- CONFIGURACION GENERAL ---
 st.set_page_config(page_title="F1 Race Predictor", layout="wide")
+
+# Fondo de pantalla de F1 (asegurate de usar la URL de la imagen correcta)
+st.markdown("""
+    <style>
+        .main {
+            background-image: url('https://your-image-url.com/f1-background.jpg'); /* Coloca aquí la URL de la imagen */
+            background-size: cover;
+            color: white;
+        }
+        h1, h2, h3 {
+            color: #E10600;
+        }
+        .stButton>button {
+            background-color: #E10600;
+            color: white;
+        }
+        .stButton>button:hover {
+            background-color: #990000;
+        }
+    </style>
+""", unsafe_allow_html=True)
+
+st.set_page_config(page_title="F1 Race Predictor", layout="wide")
 st.markdown("""
     <style>
         .main {background-color: #000000; color: white;}
