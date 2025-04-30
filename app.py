@@ -98,7 +98,11 @@ else:
     st.markdown(f"### 🎯 Precisión del modelo: `{accuracy_score(y_test, y_pred):.2f}`")
 
     # --- FORMULARIO DE PREDICCION ---
-    st.sidebar.header("🔮 Pred
+    st.sidebar.header("🔮 Predicción Personalizada")  # Aquí se cerró correctamente la cadena
+    pilotos = list(le_driver.classes_)
+    equipos = list(le_team.classes_)
+    piloto
+
 
 
 
