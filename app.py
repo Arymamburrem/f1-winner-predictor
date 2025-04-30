@@ -11,15 +11,62 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 
 # --- CONFIGURACIÓN GENERAL ---
-st.set_page_config(page_title="F1 Race Predictor", layout="wide")
+from datetime import datetime
+import streamlit as st
+
+# --- CONFIGURACIÓN DE LA PÁGINA ---
+st.set_page_config(page_title="F1 Race Predictor 2025", layout="wide")
+
+# --- ESTILOS PERSONALIZADOS ---
 st.markdown("""
     <style>
         .main {background-color: #000000; color: white;}
         h1, h2, h3 {color: #E10600;}
         .stButton>button {background-color: #E10600; color: white;}
         .stButton>button:hover {background-color: #990000;}
+        .next-race-box {
+            background-color: #111;
+            border-left: 6px solid #E10600;
+            padding: 1rem;
+            margin-bottom: 2rem;
+            border-radius: 8px;
+        }
     </style>
 """, unsafe_allow_html=True)
+
+# --- CALENDARIO DE CARRERAS 2025 ---
+calendario_2025 = [
+    {"nombre": "GP de Bahréin", "circuito": "Sakhir", "fecha": "2025-03-14", "pais": "🇧🇭"},
+    {"nombre": "GP de Arabia Saudita", "circuito": "Jeddah", "fecha": "2025-03-21", "pais": "🇸🇦"},
+    {"nombre": "GP de Australia", "circuito": "Albert Park", "fecha": "2025-04-06", "pais": "🇦🇺"},
+    {"nombre": "GP de Japón", "circuito": "Suzuka", "fecha": "2025-04-13", "pais": "🇯🇵"},
+    {"nombre": "GP de China", "circuito": "Shanghai", "fecha": "2025-04-20", "pais": "🇨🇳"},
+    {"nombre": "GP de Miami", "circuito": "Miami International Autodrome", "fecha": "2025-05-04", "pais": "🇺🇸"},
+    {"nombre": "GP de Emilia-Romaña", "circuito": "Imola", "fecha": "2025-05-18", "pais": "🇮🇹"},
+    # Agrega más carreras si lo deseas
+]
+
+# --- FUNCIÓN PARA OBTENER LA PRÓXIMA CARRERA ---
+def obtener_proxima_carrera():
+    hoy = datetime.now().date()
+    for carrera in calendario_2025:
+        fecha = datetime.strptime(carrera["fecha"], "%Y-%m-%d").date()
+        if fecha >= hoy:
+            return carrera
+    return None
+
+# --- MOSTRAR INFORMACIÓN DE LA PRÓXIMA CARRERA ---
+proxima = obtener_proxima_carrera()
+if proxima:
+    st.markdown('<div class="next-race-box">', unsafe_allow_html=True)
+    st.markdown(f"### 🏁 Próxima Carrera de F1")
+    st.markdown(f"**{proxima['nombre']}** {proxima['pais']}")
+    st.markdown(f"📍 Circuito: *{proxima['circuito']}*")
+    st.markdown(f"📆 Fecha: *{proxima['fecha']}*")
+    st.markdown('</div>', unsafe_allow_html=True)
+else:
+    st.warning("No hay más carreras registradas en el calendario 2025.")
+
 
 st.title("🏎️ F1 Race Winner Predictor 2025")
 from datetime import datetime
