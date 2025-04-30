@@ -1,0 +1,12 @@
+{
+  "ariel": {
+    "password": "1234",
+    "premium": true
+  },
+  "usuario1": {
+    "password": "abcd",
+    "premium": false
+  }
+}
+
+
