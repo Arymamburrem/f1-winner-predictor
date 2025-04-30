@@ -45,6 +45,8 @@ def cargar_datos():
     registros = []
     for carrera in races:
         for resultado in carrera['Results']:
+            # Comprobar si 'position' está presente
+            position = resultado.get('position', np.nan)  # Si no existe, usa np.nan
             registros.append({
                 'raceName': carrera['raceName'],
                 'date': carrera['date'],
@@ -52,13 +54,14 @@ def cargar_datos():
                 'driver': resultado['Driver']['familyName'],
                 'constructor': resultado['Constructor']['name'],
                 'grid': int(resultado['grid']),
-                'position': int(resultado['position']) if resultado['position'].isdigit() else np.nan,
+                'position': int(position) if position.isdigit() else np.nan,
                 'status': resultado['status']
             })
     df = pd.DataFrame(registros)
-    df.dropna(inplace=True)
-    df['win'] = (df['position'] == 1).astype(int)
+    df.dropna(subset=['position'], inplace=True)  # Asegúrate de eliminar filas con posición no válida
+    df['win'] = (df['position'] == 1).astype(int)  # Asume que la posición 1 es la victoria
     return df
+
 
 data = cargar_datos()
 st.subheader("📊 Datos Reales Temporada 2025")
