@@ -9,6 +9,37 @@ from sklearn.preprocessing import LabelEncoder
 from sklearn.metrics import accuracy_score, classification_report
 import matplotlib.pyplot as plt
 import seaborn as sns
+# --- Simulación de sistema de usuarios y suscripciones ---
+USUARIOS = {
+    'usuario_gratis': {'password': '1234', 'premium': False},
+    'usuario_premium': {'password': 'f1vip', 'premium': True}
+}
+
+def login():
+    st.sidebar.subheader("Iniciar Sesión")
+    username = st.sidebar.text_input("Usuario")
+    password = st.sidebar.text_input("Contraseña", type="password")
+
+    if st.sidebar.button("Acceder"):
+        user = USUARIOS.get(username)
+        if user and user['password'] == password:
+            st.session_state['logueado'] = True
+            st.session_state['usuario'] = username
+            st.session_state['premium'] = user['premium']
+            st.success(f"Bienvenido, {username} 👋")
+        else:
+            st.error("Usuario o contraseña incorrectos")
+
+# Inicializa estado si no existe
+if 'logueado' not in st.session_state:
+    st.session_state['logueado'] = False
+    st.session_state['premium'] = False
+    st.session_state['usuario'] = ''
+
+login()
+
+if not st.session_state['logueado']:
+    st.stop()  # Detiene ejecución si no inició sesión
 
 # --- CONFIGURACION GENERAL ---
 st.set_page_config(page_title="F1 Race Predictor", layout="wide")
