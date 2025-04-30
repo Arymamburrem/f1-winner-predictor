@@ -28,11 +28,17 @@ def cargar_datos():
     url = "https://ergast.com/api/f1/2025/results.json?limit=1000"  # Actualizado a la temporada 2025
     r = requests.get(url)
     json_data = r.json()
+    
+    # Verificar si los datos se han cargado correctamente
+    if "MRData" not in json_data or "RaceTable" not in json_data["MRData"]:
+        st.error("Error al cargar los datos desde la API. Asegúrate de que la temporada 2025 esté disponible.")
+        return pd.DataFrame()  # Retornar un DataFrame vacío si la API no responde correctamente
+    
     races = json_data['MRData']['RaceTable']['Races']
     registros = []
+    
     for carrera in races:
         for resultado in carrera['Results']:
-            # Verificación adicional para asegurar que 'position' exista en los resultados
             position = resultado.get('position', np.nan)
             # Si 'position' no es un valor válido, asignamos NaN
             registros.append({
@@ -48,6 +54,10 @@ def cargar_datos():
     
     # Crear el DataFrame y eliminar cualquier fila donde 'position' sea NaN
     df = pd.DataFrame(registros)
+    
+    if df.empty:
+        st.error("No se encontraron datos válidos para la temporada 2025.")
+        return pd.DataFrame()  # Retornar un DataFrame vacío si no hay datos
     
     # Asegurarse de que la columna 'position' exista antes de intentar manipularla
     if 'position' in df.columns:
@@ -101,7 +111,20 @@ else:
     st.sidebar.header("🔮 Predicción Personalizada")  # Aquí se cerró correctamente la cadena
     pilotos = list(le_driver.classes_)
     equipos = list(le_team.classes_)
-    piloto
+    piloto_sel = st.sidebar.selectbox("Piloto", pilotos)
+    equipo_sel = st.sidebar.selectbox("Equipo", equipos)
+    grid_sel = st.sidebar.slider("Posición de largada (Grid)", 1, 20, 5)
+
+    if st.sidebar.button("Predecir Ganador"):
+        datos_input = np.array([
+            le_driver.transform([piloto_sel])[0],
+            le_team.transform([equipo_sel])[0],
+            grid_sel
+        ]).reshape(1, -1)
+        prediccion = model.predict(datos_input)
+        resultado = "GANARÁ la carrera" if prediccion[0] == 1 else "NO ganará"
+        st.success(f"🧠 Según el modelo, {piloto_sel} {resultado}.")
+
 
 
 
