@@ -44,6 +44,13 @@ st.markdown("""
             justify-content: center;
             margin-bottom: 1rem;
         }
+        .prediction-box {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid #E10600;
+            padding: 1rem;
+            border-radius: 10px;
+            margin-top: 1rem;
+        }
     </style>
 """, unsafe_allow_html=True)
 
@@ -72,21 +79,16 @@ def obtener_proxima_carrera():
 proxima = obtener_proxima_carrera()
 if proxima:
     st.markdown('<div class="next-race-box">', unsafe_allow_html=True)
-    st.markdown(f"### 🏁 Próxima Carrera")
-    st.markdown(f"**{proxima['nombre']}** {proxima['pais']}")
-    st.markdown(f"📍 Circuito: *{proxima['circuito']}*")
-    st.markdown(f"📆 Fecha: *{proxima['fecha']}*")
-    st.markdown("""
-    <div style="display: flex; align-items: center; gap: 10px;">
-        <img src="https://img.icons8.com/color/48/000000/sun--v1.png" width="30"/>
-        <span><strong>Clima estimado:</strong> Soleado, 28°C</span>
-    </div>
-    <div style="display: flex; align-items: center; gap: 10px;">
-        <img src="https://img.icons8.com/color/48/000000/bar-chart--v1.png" width="30"/>
-        <span><strong>Promedio de victorias:</strong> Verstappen (3), Hamilton (2)</span>
-    </div>
-""", unsafe_allow_html=True)
-
+    st.markdown(f"<h3>🏁 Próxima Carrera</h3>", unsafe_allow_html=True)
+    st.markdown(f"""
+        <ul style='list-style: none; padding-left: 0;'>
+            <li><img src='https://cdn-icons-png.flaticon.com/512/1183/1183672.png' width='25'/> <strong>{proxima['nombre']}</strong> {proxima['pais']}</li>
+            <li><img src='https://cdn-icons-png.flaticon.com/512/446/446075.png' width='25'/> Circuito: <em>{proxima['circuito']}</em></li>
+            <li><img src='https://cdn-icons-png.flaticon.com/512/2921/2921222.png' width='25'/> Fecha: <em>{proxima['fecha']}</em></li>
+            <li><img src='https://cdn-icons-png.flaticon.com/512/869/869869.png' width='25'/> Clima estimado: <em>Soleado, 28°C</em></li>
+            <li><img src='https://cdn-icons-png.flaticon.com/512/1828/1828884.png' width='25'/> Promedio de victorias: <em>Verstappen (3), Hamilton (2)</em></li>
+        </ul>
+    """, unsafe_allow_html=True)
     st.markdown('</div>', unsafe_allow_html=True)
 else:
     st.warning("No hay más carreras registradas en el calendario 2025.")
@@ -120,7 +122,6 @@ def cargar_datos():
         st.error("No se encontraron datos válidos.")
         return df
     df['win'] = (df['position'] == 1).astype(int)
-    df['top3'] = (df['position'] <= 3).astype(int)
     return df
 
 # --- PROCESO DE DATOS Y VISUALIZACIÓN ---
@@ -139,22 +140,23 @@ ax.set_xlabel("Victorias")
 ax.set_ylabel("Piloto")
 st.pyplot(fig)
 
+# --- COMPARATIVA ENTRE ESCUDERÍAS ---
 st.subheader("🏁 Comparativa entre Escuderías")
-comparativa = data.groupby('constructor').agg(
+team_stats = data.groupby('constructor').agg(
     total_carreras=('raceName', 'count'),
     victorias=('win', 'sum'),
-    promedio_grid=('grid', 'mean')
+    porcentaje_victorias=('win', lambda x: round(100 * x.sum() / len(x), 2))
 ).sort_values(by='victorias', ascending=False)
 
-st.dataframe(comparativa)
+st.dataframe(team_stats.style.background_gradient(cmap="Reds"))
 
-fig_eq, ax_eq = plt.subplots()
-sns.barplot(x=comparativa['victorias'], y=comparativa.index, palette='Reds_r', ax=ax_eq)
-ax_eq.set_title("Victorias por Escudería")
-ax_eq.set_xlabel("Victorias")
-st.pyplot(fig_eq)
+fig2, ax2 = plt.subplots()
+sns.barplot(x=team_stats['victorias'], y=team_stats.index, palette="Reds_r", ax=ax2)
+ax2.set_xlabel("Victorias")
+ax2.set_ylabel("Escudería")
+st.pyplot(fig2)
 
-# --- ENTRENAMIENTO DE MODELOS ---
+# --- ENTRENAMIENTO DE MODELO ---
 le_driver = LabelEncoder()
 le_team = LabelEncoder()
 data['driver_enc'] = le_driver.fit_transform(data['driver'])
@@ -162,16 +164,11 @@ data['team_enc'] = le_team.fit_transform(data['constructor'])
 
 X = data[['driver_enc', 'team_enc', 'grid']]
 y = data['win']
-y_top3 = data['top3']
-
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
 model = RandomForestClassifier(n_estimators=100, random_state=42)
 model.fit(X_train, y_train)
 y_pred = model.predict(X_test)
-
-X_train3, X_test3, y_train3, y_test3 = train_test_split(X, y_top3, test_size=0.2, random_state=42)
-model_top3 = RandomForestClassifier(n_estimators=100, random_state=42)
-model_top3.fit(X_train3, y_train3)
 
 st.markdown(f"### 🎯 Precisión del modelo: `{accuracy_score(y_test, y_pred):.2f}`")
 
@@ -180,24 +177,43 @@ st.sidebar.header("🔮 Predicción Personalizada")
 pilotos = list(le_driver.classes_)
 equipos = list(le_team.classes_)
 
-piloto_sel = st.sidebar.selectbox("Piloto", pilotos)
-equipo_sel = st.sidebar.selectbox("Equipo", equipos)
-grid_sel = st.sidebar.slider("Posición de largada (Grid)", 1, 20, 5)
+piloto_sel = st.sidebar.selectbox("👨‍✈️ Piloto", pilotos)
+equipo_sel = st.sidebar.selectbox("🏎️ Equipo", equipos)
+grid_sel = st.sidebar.slider("📍 Posición de largada (Grid)", 1, 20, 5)
 
-if st.sidebar.button("Predecir Ganador y Podio"):
+if st.sidebar.button("📢 Predecir Ganador"):
     datos_input = np.array([
         le_driver.transform([piloto_sel])[0],
         le_team.transform([equipo_sel])[0],
         grid_sel
     ]).reshape(1, -1)
+    prediccion = model.predict(datos_input)
+    resultado = "GANARÁ la carrera" if prediccion[0] == 1 else "NO ganará"
+    st.markdown('<div class="prediction-box">', unsafe_allow_html=True)
+    st.success(f"🧠 Según el modelo, {piloto_sel} {resultado}.")
+    st.markdown('</div>', unsafe_allow_html=True)
 
-    pred1 = model.predict(datos_input)
-    pred3 = model_top3.predict(datos_input)
+# --- PREDICCIÓN DEL PODIO COMPLETO ---
+st.sidebar.header("🥇 Predicción del Podio")
+if st.sidebar.button("🎉 Predecir Podio Completo"):
+    grid_positions = list(range(1, 21))
+    posibles = []
 
-    resultado1 = "GANARÁ" if pred1[0] == 1 else "NO ganará"
-    resultado3 = "subirá al PODIO" if pred3[0] == 1 else "no subirá al podio"
+    for piloto in pilotos:
+        for equipo in equipos:
+            for grid in grid_positions:
+                piloto_enc = le_driver.transform([piloto])[0]
+                equipo_enc = le_team.transform([equipo])[0]
+                input_data = np.array([piloto_enc, equipo_enc, grid]).reshape(1, -1)
+                prob_win = model.predict_proba(input_data)[0][1]
+                posibles.append((piloto, equipo, grid, prob_win))
 
-    st.success(f"🧠 Según el modelo, {piloto_sel} {resultado1} y {resultado3}.")
+    df_posibles = pd.DataFrame(posibles, columns=["Piloto", "Equipo", "Grid", "Probabilidad"])
+    top3 = df_posibles.sort_values("Probabilidad", ascending=False).head(3).reset_index(drop=True)
+
+    st.markdown("### 🏆 Predicción del Podio")
+    st.table(top3)
+
 
 
 
