@@ -17,7 +17,7 @@ st.set_page_config(page_title="F1 Predictor 2025 por AryMamburrem", layout="wide
 st.markdown("""
     <style>
         .stApp {
-            background-image: url("https://i.pinimg.com/1200x/63/1a/a4/631aa462d178415d0a0d6ddaa877c0af.jpg");
+            background-image: url("https://img.redbull.com/images/w_3000/q_auto,f_auto/redbullcom/2013/09/22/1331612504617_5/gran-premio-de-f%C3%B3rmula-1-de-singapur-2013.jpg");
             background-size: cover;
             color: white;
         }
