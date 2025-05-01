@@ -5,3 +5,6 @@ numpy
 scikit-learn
 matplotlib
 seaborn
+pip install streamlit-echarts
+pip install streamlit-aggrid
+pip install streamlit-option-menu
