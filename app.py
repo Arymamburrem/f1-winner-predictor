@@ -53,7 +53,7 @@ st.markdown('<div class="logo-container">', unsafe_allow_html=True)
 st.image("https://upload.wikimedia.org/wikipedia/commons/thumb/3/33/F1.svg/1200px-F1.svg.png", width=400)
 st.markdown('</div>', unsafe_allow_html=True)
 
-st.title("🏎️ F1 Race Predictor 2025")
+st.title("🏎 F1 Race Predictor 2025")
 
 # --- CALENDARIO DE CARRERAS 2025 ---
 calendario_2025 = [
