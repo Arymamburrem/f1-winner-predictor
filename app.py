@@ -76,8 +76,17 @@ if proxima:
     st.markdown(f"**{proxima['nombre']}** {proxima['pais']}")
     st.markdown(f"📍 Circuito: *{proxima['circuito']}*")
     st.markdown(f"📆 Fecha: *{proxima['fecha']}*")
-    st.markdown("🌦️ **Clima estimado**: Soleado, 28°C")
-    st.markdown("📈 **Promedio de victorias en este circuito**: Verstappen (3), Hamilton (2)")
+   st.markdown("""
+    <div style="display: flex; align-items: center; gap: 10px;">
+        <img src="https://img.icons8.com/color/48/000000/sun--v1.png" width="30"/>
+        <span><strong>Clima estimado:</strong> Soleado, 28°C</span>
+    </div>
+    <div style="display: flex; align-items: center; gap: 10px;">
+        <img src="https://img.icons8.com/color/48/000000/bar-chart--v1.png" width="30"/>
+        <span><strong>Promedio de victorias:</strong> Verstappen (3), Hamilton (2)</span>
+    </div>
+""", unsafe_allow_html=True)
+
     st.markdown('</div>', unsafe_allow_html=True)
 else:
     st.warning("No hay más carreras registradas en el calendario 2025.")
