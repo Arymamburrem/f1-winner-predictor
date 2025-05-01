@@ -8,3 +8,9 @@ seaborn
 pip install streamlit-echarts
 pip install streamlit-aggrid
 pip install streamlit-option-menu
+matplotlib
+seaborn
+scikit-learn
+numpy
+pandas
+requests
