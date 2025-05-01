@@ -13,16 +13,11 @@ import seaborn as sns
 # --- CONFIGURACIÓN GENERAL ---
 st.set_page_config(page_title="F1 Predictor 2025 por AryMamburrem", layout="wide")
 
-# --- ESTILO PERSONALIZADO  ---
+# --- ESTILO PERSONALIZADO Y FONDO SUTIL ---
 st.markdown("""
     <style>
         .stApp {
-            background-image: url("
-https://img.redbull.com/images/w_3000/q_auto,f_auto/redbullcom/2013/09/22/1331612504617_5/gran-premio-de-f%C3%B3rmula-1-de-singapur-2013.jpg
-
-
-
-");
+            background-image: url("https://img.redbull.com/images/w_3000/q_auto,f_auto/redbullcom/2013/09/22/1331612504617_5/gran-premio-de-f%C3%B3rmula-1-de-singapur-2013.jpg");
             background-size: cover;
             color: white;
         }
@@ -63,7 +58,6 @@ st.title("🏎️ F1 Race Predictor 2025")
 calendario_2025 = [
     {"nombre": "GP de Miami", "circuito": "Miami International Autodrome", "fecha": "2025-05-04", "pais": "🇺🇸"},
     {"nombre": "GP de Emilia-Romaña", "circuito": "Imola", "fecha": "2025-05-18", "pais": "🇮🇹"},
-    # Agrega más carreras si deseas
 ]
 
 def obtener_proxima_carrera():
@@ -82,8 +76,6 @@ if proxima:
     st.markdown(f"**{proxima['nombre']}** {proxima['pais']}")
     st.markdown(f"📍 Circuito: *{proxima['circuito']}*")
     st.markdown(f"📆 Fecha: *{proxima['fecha']}*")
-
-    # Clima (simulado)
     st.markdown("🌦️ **Clima estimado**: Soleado, 28°C")
     st.markdown("📈 **Promedio de victorias en este circuito**: Verstappen (3), Hamilton (2)")
     st.markdown('</div>', unsafe_allow_html=True)
@@ -119,6 +111,7 @@ def cargar_datos():
         st.error("No se encontraron datos válidos.")
         return df
     df['win'] = (df['position'] == 1).astype(int)
+    df['top3'] = (df['position'] <= 3).astype(int)
     return df
 
 # --- PROCESO DE DATOS Y VISUALIZACIÓN ---
@@ -137,7 +130,22 @@ ax.set_xlabel("Victorias")
 ax.set_ylabel("Piloto")
 st.pyplot(fig)
 
-# --- ENTRENAMIENTO DE MODELO ---
+st.subheader("🏁 Comparativa entre Escuderías")
+comparativa = data.groupby('constructor').agg(
+    total_carreras=('raceName', 'count'),
+    victorias=('win', 'sum'),
+    promedio_grid=('grid', 'mean')
+).sort_values(by='victorias', ascending=False)
+
+st.dataframe(comparativa)
+
+fig_eq, ax_eq = plt.subplots()
+sns.barplot(x=comparativa['victorias'], y=comparativa.index, palette='Reds_r', ax=ax_eq)
+ax_eq.set_title("Victorias por Escudería")
+ax_eq.set_xlabel("Victorias")
+st.pyplot(fig_eq)
+
+# --- ENTRENAMIENTO DE MODELOS ---
 le_driver = LabelEncoder()
 le_team = LabelEncoder()
 data['driver_enc'] = le_driver.fit_transform(data['driver'])
@@ -145,11 +153,16 @@ data['team_enc'] = le_team.fit_transform(data['constructor'])
 
 X = data[['driver_enc', 'team_enc', 'grid']]
 y = data['win']
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+y_top3 = data['top3']
 
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
 model = RandomForestClassifier(n_estimators=100, random_state=42)
 model.fit(X_train, y_train)
 y_pred = model.predict(X_test)
+
+X_train3, X_test3, y_train3, y_test3 = train_test_split(X, y_top3, test_size=0.2, random_state=42)
+model_top3 = RandomForestClassifier(n_estimators=100, random_state=42)
+model_top3.fit(X_train3, y_train3)
 
 st.markdown(f"### 🎯 Precisión del modelo: `{accuracy_score(y_test, y_pred):.2f}`")
 
@@ -162,15 +175,21 @@ piloto_sel = st.sidebar.selectbox("Piloto", pilotos)
 equipo_sel = st.sidebar.selectbox("Equipo", equipos)
 grid_sel = st.sidebar.slider("Posición de largada (Grid)", 1, 20, 5)
 
-if st.sidebar.button("Predecir Ganador"):
+if st.sidebar.button("Predecir Ganador y Podio"):
     datos_input = np.array([
         le_driver.transform([piloto_sel])[0],
         le_team.transform([equipo_sel])[0],
         grid_sel
     ]).reshape(1, -1)
-    prediccion = model.predict(datos_input)
-    resultado = "GANARÁ la carrera" if prediccion[0] == 1 else "NO ganará"
-    st.success(f"🧠 Según el modelo, {piloto_sel} {resultado}.")
+
+    pred1 = model.predict(datos_input)
+    pred3 = model_top3.predict(datos_input)
+
+    resultado1 = "GANARÁ" if pred1[0] == 1 else "NO ganará"
+    resultado3 = "subirá al PODIO" if pred3[0] == 1 else "no subirá al podio"
+
+    st.success(f"🧠 Según el modelo, {piloto_sel} {resultado1} y {resultado3}.")
+
 
 
 
