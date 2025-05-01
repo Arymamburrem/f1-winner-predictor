@@ -17,7 +17,7 @@ st.set_page_config(page_title="F1 Predictor 2025 por AryMamburrem", layout="wide
 st.markdown("""
     <style>
         .stApp {
-            background-image: url("https://images.unsplash.com/photo-1659203206829-218b9b5930e5?q=80&w=1374&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D");
+            background-image: url("https://library.sportingnews.com/styles/crop_style_16_9_desktop/s3/2024-02/F1%20las%20vegas%20022324.jpg?h=920929c4&itok=HlYN6EjH");
             background-size: cover;
             color: white;
         }
