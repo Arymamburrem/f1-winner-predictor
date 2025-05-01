@@ -76,7 +76,7 @@ if proxima:
     st.markdown(f"**{proxima['nombre']}** {proxima['pais']}")
     st.markdown(f"📍 Circuito: *{proxima['circuito']}*")
     st.markdown(f"📆 Fecha: *{proxima['fecha']}*")
-   st.markdown("""
+    st.markdown("""
     <div style="display: flex; align-items: center; gap: 10px;">
         <img src="https://img.icons8.com/color/48/000000/sun--v1.png" width="30"/>
         <span><strong>Clima estimado:</strong> Soleado, 28°C</span>
