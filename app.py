@@ -270,6 +270,26 @@ if st.sidebar.button("🎉 Predecir Podio Completo"):
 
     st.markdown("### 🏆 Predicción del Podio")
     st.table(top3)
+# --- PREDICCIÓN POR ESCUDERÍA ---
+st.sidebar.header("🔧 Predicción por Escudería")
+if st.sidebar.button("🚀 Predecir Escudería Ganadora"):
+    equipos_pred = []
+    for equipo in equipos:
+        total_prob = 0
+        for piloto in pilotos:
+            for grid in range(1, 21):
+                piloto_enc = le_driver.transform([piloto])[0]
+                equipo_enc = le_team.transform([equipo])[0]
+                input_data = np.array([piloto_enc, equipo_enc, grid]).reshape(1, -1)
+                prob_win = model.predict_proba(input_data)[0][1]
+                total_prob += prob_win
+        equipos_pred.append((equipo, total_prob))
+
+    df_equipos = pd.DataFrame(equipos_pred, columns=["Equipo", "Probabilidad Acumulada"])
+    df_equipos = df_equipos.sort_values("Probabilidad Acumulada", ascending=False).reset_index(drop=True)
+
+    st.markdown("### 🏎️ Predicción de Escudería Ganadora")
+    st.table(df_equipos.head(3))
 
 
 
