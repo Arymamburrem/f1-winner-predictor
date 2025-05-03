@@ -81,15 +81,72 @@ if proxima:
     st.markdown('<div class="next-race-box">', unsafe_allow_html=True)
     st.markdown(f"<h3>🏁 Próxima Carrera</h3>", unsafe_allow_html=True)
     st.markdown(f"""
-        <ul style='list-style: none; padding-left: 0;'>
-            <li><img src='https://cdn-icons-png.flaticon.com/512/1183/1183672.png' width='25'/> <strong>{proxima['nombre']}</strong> {proxima['pais']}</li>
-            <li><img src='https://cdn-icons-png.flaticon.com/512/446/446075.png' width='25'/> Circuito: <em>{proxima['circuito']}</em></li>
-            <li><img src='https://cdn-icons-png.flaticon.com/512/2921/2921222.png' width='25'/> Fecha: <em>{proxima['fecha']}</em></li>
-            <li><img src='https://cdn-icons-png.flaticon.com/512/869/869869.png' width='25'/> Clima estimado: <em>Soleado, 28°C</em></li>
-            <li><img src='https://cdn-icons-png.flaticon.com/512/1828/1828884.png' width='25'/> Promedio de victorias: <em>Verstappen (3), Hamilton (2)</em></li>
-        </ul>
-    """, unsafe_allow_html=True)
-    st.markdown('</div>', unsafe_allow_html=True)
+    <style>
+        .icono-tooltip {{
+            position: relative;
+            display: inline-block;
+        }}
+        .icono-tooltip .tooltiptext {{
+            visibility: hidden;
+            width: 180px;
+            background-color: #000000cc;
+            color: #fff;
+            text-align: center;
+            border-radius: 6px;
+            padding: 5px;
+            position: absolute;
+            z-index: 1;
+            bottom: 125%;
+            left: 50%;
+            margin-left: -90px;
+            opacity: 0;
+            transition: opacity 0.4s;
+        }}
+        .icono-tooltip:hover .tooltiptext {{
+            visibility: visible;
+            opacity: 1;
+        }}
+    </style>
+    <ul style='list-style: none; padding-left: 0; font-size: 18px;'>
+        <li>
+            <span class="icono-tooltip">
+                <img src='https://cdn-icons-png.flaticon.com/512/1183/1183672.png' width='25'/>
+                <span class="tooltiptext">Nombre del Gran Premio</span>
+            </span>
+            <strong>{proxima['nombre']}</strong> {proxima['pais']}
+        </li>
+        <li>
+            <span class="icono-tooltip">
+                <img src='https://cdn-icons-png.flaticon.com/512/446/446075.png' width='25'/>
+                <span class="tooltiptext">Nombre del circuito</span>
+            </span>
+            Circuito: <em>{proxima['circuito']}</em>
+        </li>
+        <li>
+            <span class="icono-tooltip">
+                <img src='https://cdn-icons-png.flaticon.com/512/2921/2921222.png' width='25'/>
+                <span class="tooltiptext">Fecha del evento</span>
+            </span>
+            Fecha: <em>{proxima['fecha']}</em>
+        </li>
+        <li>
+            <span class="icono-tooltip">
+                <img src='https://cdn-icons-png.flaticon.com/512/869/869869.png' width='25'/>
+                <span class="tooltiptext">Condiciones climáticas estimadas</span>
+            </span>
+            Clima estimado: <em>Soleado, 28°C</em>
+        </li>
+        <li>
+            <span class="icono-tooltip">
+                <img src='https://cdn-icons-png.flaticon.com/512/1828/1828884.png' width='25'/>
+                <span class="tooltiptext">Historial de victorias</span>
+            </span>
+            Promedio de victorias: <em>Verstappen (3), Hamilton (2)</em>
+        </li>
+    </ul>
+""", unsafe_allow_html=True)
+st.markdown('</div>', unsafe_allow_html=True)
+
 else:
     st.warning("No hay más carreras registradas en el calendario 2025.")
 
