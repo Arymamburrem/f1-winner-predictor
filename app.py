@@ -68,12 +68,24 @@ calendario_2025 = [
 ]
 
 def obtener_proxima_carrera():
+    url = "https://ergast.com/api/f1/current.json"
+    response = requests.get(url)
+    if response.status_code != 200:
+        st.error("No se pudo obtener el calendario desde la API.")
+        return None
+    carreras = response.json()['MRData']['RaceTable']['Races']
     hoy = datetime.now().date()
-    for carrera in calendario_2025:
-        fecha = datetime.strptime(carrera["fecha"], "%Y-%m-%d").date()
+    for carrera in carreras:
+        fecha = datetime.strptime(carrera["date"], "%Y-%m-%d").date()
         if fecha >= hoy:
-            return carrera
+            return {
+                "nombre": carrera["raceName"],
+                "circuito": carrera["Circuit"]["circuitName"],
+                "fecha": carrera["date"],
+                "pais": carrera["Circuit"]["Location"]["country"]
+            }
     return None
+
 
 # --- PRÓXIMA CARRERA ---
 proxima = obtener_proxima_carrera()
